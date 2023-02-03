@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id        String     @id @default(uuid())
+  username  String
+  email     String     @unique
+  password  String
+  role      role       @default(BASIC)
+  cartItems cartItem[]
+  orders    order[]
+}
+
+enum role {
+  BASIC
+  ADMIN
+}
+
+model product {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  price       Decimal     @db.Decimal(10, 2)
+  isFeatured  Boolean     @default(false)
+  categories  category[]
+  images      String[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cartItems   cartItem[]
+  orderItems  orderItem[]
+}
+
+enum category {
+  Clothes
+  Electronics
+  Furniture
+  Shoes
+  Others
+}
+
+model cartItem {
+  id        String   @id @default(uuid())
+  product   product  @relation(fields: [productId], references: [id])
+  productId String
+  user      user     @relation(fields: [userId], references: [id])
+  userId    String
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId])
+}
+
+model order {
+  id         String      @id @default(uuid())
+  user       user        @relation(fields: [usersId], references: [id])
+  usersId    String
+  totalPaid  Decimal?    @db.Decimal(12, 2)
+  paidAt     DateTime?
+  createdAt  DateTime    @default(now())
+  orderItems orderItem[]
+}
+
+model orderItem {
+  id        String  @id @default(uuid())
+  order     order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+
+  @@unique([productId, orderId])
+}
