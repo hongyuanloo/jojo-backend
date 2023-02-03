@@ -6,11 +6,12 @@ import startRouters from "./src/routers";
 startRouters;
 
 //! test db
-import { usersModel, productsModel, cartItemsModel } from "./src/models";
+// import { usersModel, productsModel, cartItemsModel } from "./src/models";
+// import { generateTokenPayload } from "./src/services/auth-service";
 
 // usersModel.deleteAllUsers();
 // usersModel.createUsers();
-usersModel.getUsers();
+// usersModel.getUsers();
 
 // productsModel.createProducts();
 // productsModel.getProducts();
@@ -18,3 +19,5 @@ usersModel.getUsers();
 // cartItemsModel.createCartItem();
 // cartItemsModel.getCartItems();
 // cartItemsModel.upsertCartItems();
+
+// generateTokenPayload({ email: "aa", role: "bb", test: "cc" });

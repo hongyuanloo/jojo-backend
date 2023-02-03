@@ -1,19 +1,8 @@
-import express, { Router, Request, Response } from "express";
+import { Router } from "express";
+import { createUser } from "../controllers/users-controller";
 
 const router = Router();
 
-/* GET programming languages. */
-router.get("/", (req: Request, res: Response) => {
-  res.send("router-get...");
-});
-
-/* POST programming language */
-// router.post("/", programmingLanguagesController.create);
-
-// /* PUT programming language */
-// router.put("/:id", programmingLanguagesController.update);
-
-// /* DELETE programming language */
-// router.delete("/:id", programmingLanguagesController.remove);
+router.post("/", createUser); // ok
 
 export default router;

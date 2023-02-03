@@ -2,6 +2,31 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+async function createUser() {
+  try {
+    const allUsers = await prisma.user.createMany({
+      data: [
+        {
+          username: "loo",
+          email: "loo@gg.com",
+          password: "123",
+          role: "ADMIN",
+        },
+        {
+          username: "john",
+          email: "john@gg.com",
+          password: "123",
+        },
+      ],
+    });
+    console.log("---createUser-..", allUsers);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 // create a user
 async function createUsers() {
   try {
@@ -70,4 +95,10 @@ async function deleteAllUsers() {
   }
 }
 
-export default { createUsers, getUsers, updateUser, deleteAllUsers };
+export default {
+  createUser,
+  createUsers,
+  getUsers,
+  updateUser,
+  deleteAllUsers,
+};

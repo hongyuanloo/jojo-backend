@@ -11,6 +11,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
+function createUser() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const allUsers = yield prisma.user.createMany({
+                data: [
+                    {
+                        username: "loo",
+                        email: "loo@gg.com",
+                        password: "123",
+                        role: "ADMIN",
+                    },
+                    {
+                        username: "john",
+                        email: "john@gg.com",
+                        password: "123",
+                    },
+                ],
+            });
+            console.log("---createUser-..", allUsers);
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
 // create a user
 function createUsers() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -92,5 +120,11 @@ function deleteAllUsers() {
         }
     });
 }
-exports.default = { createUsers, getUsers, updateUser, deleteAllUsers };
+exports.default = {
+    createUser,
+    createUsers,
+    getUsers,
+    updateUser,
+    deleteAllUsers,
+};
 //# sourceMappingURL=usersModel.js.map

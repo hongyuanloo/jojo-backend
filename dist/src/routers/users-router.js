@@ -1,16 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const users_controller_1 = require("../controllers/users-controller");
 const router = (0, express_1.Router)();
-/* GET programming languages. */
-router.get("/", (req, res) => {
-    res.send("router-get...");
-});
-/* POST programming language */
-// router.post("/", programmingLanguagesController.create);
-// /* PUT programming language */
-// router.put("/:id", programmingLanguagesController.update);
-// /* DELETE programming language */
-// router.delete("/:id", programmingLanguagesController.remove);
+router.post("/", users_controller_1.createUser);
 exports.default = router;
 //# sourceMappingURL=users-router.js.map

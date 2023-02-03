@@ -1,5 +1,11 @@
-import usersModel from "./usersModel";
-import productsModel from "./productsModel";
-import cartItemsModel from "./cartItemsModel";
+import { PrismaClient } from "@prisma/client";
 
-export { usersModel, productsModel, cartItemsModel };
+const prisma = new PrismaClient();
+
+export default prisma;
+
+// import usersModel from "./usersModel";
+// import productsModel from "./productsModel";
+// import cartItemsModel from "./cartItemsModel";
+
+// export { usersModel, productsModel, cartItemsModel };
