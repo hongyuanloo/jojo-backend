@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
+exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.createOrder = exports.getOrders = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
 const index_1 = __importDefault(require("../models/index"));
 const http_status_1 = __importDefault(require("http-status"));
 const error_util_1 = require("../utils/error-util");
@@ -106,6 +106,95 @@ function upsertCartItem(req, res) {
     });
 }
 exports.upsertCartItem = upsertCartItem;
+// get CartItems of a user. returns json or null
+function getOrders(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { id: userId } = req.params;
+        try {
+            const allOrders = yield index_1.default.order.findMany({
+                select: {
+                    id: true,
+                    totalPaid: true,
+                    paidAt: true,
+                    createdAt: true,
+                    orderItems: true,
+                },
+                where: { userId },
+                orderBy: { createdAt: "asc" }, // or "desc"
+            });
+            // id found, return allOrders in [{},{}...]
+            res.status(http_status_1.default.OK).json(allOrders);
+        }
+        catch (error) {
+            // handle any other error.
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.getOrders = getOrders;
+/* Given user, create a new order.
+- example of req.body:
+  {
+    "totalPaid": 330.45,
+    "paidAt": "2023-02-04T15:36:25.679Z",
+    "orderItems": [
+      {
+        "productId": "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+        "quantity": 4
+      },
+      {
+        "productId": "588028ec-9d25-4b62-9064-4c57732cb262",
+        "quantity": 6
+      }
+    ]
+  }*/
+function createOrder(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { id: userId } = req.params;
+        const { totalPaid, paidAt, orderItems: orderProducts } = req.body;
+        // console.log("--req.body--", req.body);
+        try {
+            // given user id, create a new order with data provided in req.body.
+            const newOrder = yield index_1.default.order.create({
+                data: {
+                    userId,
+                    totalPaid,
+                    paidAt,
+                    orderItems: { createMany: { data: orderProducts } },
+                },
+            });
+            // console.log("--newOrder--", newOrder);
+            // remove all cart items of given user.
+            const totalCartItemsRemoved = yield index_1.default.cartItem.deleteMany({
+                where: { userId },
+            });
+            // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved);
+            /* return new order created
+            - example of newOrder created:
+             {
+              "id": "d3e6d508-2761-4a99-a388-f68b775173c8",
+              "userId": "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+              "totalPaid": "88.45",
+              "paidAt": "2023-09-04T15:36:25.679Z",
+              "createdAt": "2023-02-04T15:53:33.839Z"
+            }    */
+            res.status(http_status_1.default.OK).json(newOrder);
+        }
+        catch (error) {
+            // handle any other error.
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.createOrder = createOrder;
 // [ADMIN] get all users
 function getUsers(req, res) {
     return __awaiter(this, void 0, void 0, function* () {

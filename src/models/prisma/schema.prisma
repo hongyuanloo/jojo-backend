@@ -59,8 +59,8 @@ model cartItem {
 
 model order {
   id         String      @id @default(uuid())
-  user       user        @relation(fields: [usersId], references: [id])
-  usersId    String
+  user       user        @relation(fields: [userId], references: [id])
+  userId     String
   totalPaid  Decimal?    @db.Decimal(12, 2)
   paidAt     DateTime?
   createdAt  DateTime    @default(now())
