@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUser = void 0;
+exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.createUser = void 0;
 const index_1 = __importDefault(require("../models/index"));
 const http_status_1 = __importDefault(require("http-status"));
 const error_util_1 = require("../utils/error-util");
@@ -53,4 +53,120 @@ function createUser(req, res) {
     });
 }
 exports.createUser = createUser;
+// [ADMIN] get all users
+function getUsers(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            //get all users.
+            const users = yield index_1.default.user.findMany();
+            res.status(http_status_1.default.OK).json(users);
+        }
+        catch (error) {
+            // handle any other error.
+            const errMessage = (0, error_util_1.getErrorMessage)(error);
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json(errMessage);
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.getUsers = getUsers;
+// [ADMIN] get a user
+function getUser(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const id = req.params.id;
+        try {
+            // check if id is valid.
+            const foundUser = yield index_1.default.user.findUnique({
+                where: { id },
+            });
+            // id not found, return { error: `${id} is invalid.` }
+            if (!foundUser) {
+                return res
+                    .status(http_status_1.default.BAD_REQUEST)
+                    .json({ error: `${id} is invalid.` });
+            }
+            res.status(http_status_1.default.OK).json(foundUser);
+        }
+        catch (error) {
+            // handle any other error.
+            const errMessage = (0, error_util_1.getErrorMessage)(error);
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json(errMessage);
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.getUser = getUser;
+// [ADMIN] delete a user
+function deleteUser(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const id = req.params.id;
+        try {
+            // check if id is valid.
+            const foundUser = yield index_1.default.user.findUnique({
+                where: { id },
+            });
+            // id not found, return { error: `${id} is invalid.` }
+            if (!foundUser) {
+                return res
+                    .status(http_status_1.default.BAD_REQUEST)
+                    .json({ error: `${id} is invalid.` });
+            }
+            // delete a user
+            const deletedUser = yield index_1.default.user.delete({
+                where: { id },
+            });
+            res.status(http_status_1.default.OK).json(deletedUser);
+        }
+        catch (error) {
+            // handle any other error.
+            const errMessage = (0, error_util_1.getErrorMessage)(error);
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json(errMessage);
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.deleteUser = deleteUser;
+// [ADMIN] update a user
+function updateUser(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const id = req.params.id;
+        try {
+            // check if id is valid.
+            const foundUser = yield index_1.default.user.findUnique({
+                where: { id },
+            });
+            // id not found, return { error: `${id} is invalid.` }
+            if (!foundUser) {
+                return res
+                    .status(http_status_1.default.BAD_REQUEST)
+                    .json({ error: `${id} is invalid.` });
+            }
+            //update a user
+            const updatedUser = yield index_1.default.user.update({
+                where: { id },
+                data: Object.assign({}, req.body),
+            });
+            res.status(http_status_1.default.OK).json(updatedUser);
+        }
+        catch (error) {
+            // handle any other error.
+            const errMessage = (0, error_util_1.getErrorMessage)(error);
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json(errMessage);
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.updateUser = updateUser;
 //# sourceMappingURL=users-controller.js.map

@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import prisma from "../models";
 import { getErrorMessage } from "../utils/error-util";
 
-// retun all products in json.
+// get all products.
 export async function getAllProducts(req: Request, res: Response) {
   try {
     //get all products.
@@ -60,7 +60,7 @@ export async function deleteProduct(req: Request, res: Response) {
         .json({ error: `${id} is invalid.` });
     }
 
-    //create a product
+    //delete a product
     const deletedProduct = await prisma.product.delete({
       where: { id },
     });

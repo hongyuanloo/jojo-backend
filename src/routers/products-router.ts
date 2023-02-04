@@ -9,11 +9,11 @@ import {
 const router = Router();
 
 // return all products in json
-router.get("/", getAllProducts);
+router.get("/", getAllProducts); //ok
 
 // For development/admin use:
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+router.post("/", createProduct); //ok
+router.put("/:id", updateProduct); //ok
+router.delete("/:id", deleteProduct); //ok
 
 export default router;

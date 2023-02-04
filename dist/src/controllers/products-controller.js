@@ -16,7 +16,7 @@ exports.updateProduct = exports.deleteProduct = exports.createProduct = exports.
 const http_status_1 = __importDefault(require("http-status"));
 const models_1 = __importDefault(require("../models"));
 const error_util_1 = require("../utils/error-util");
-// retun all products in json.
+// get all products.
 function getAllProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -75,7 +75,7 @@ function deleteProduct(req, res) {
                     .status(http_status_1.default.BAD_REQUEST)
                     .json({ error: `${id} is invalid.` });
             }
-            //create a product
+            //delete a product
             const deletedProduct = yield models_1.default.product.delete({
                 where: { id },
             });
