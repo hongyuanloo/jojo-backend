@@ -43,6 +43,56 @@ export async function createUser(req: Request, res: Response) {
   }
 }
 
+// get CartItems of a user. returns json or null
+export async function getCartItems(req: Request, res: Response) {
+  const { id } = req.params;
+
+  try {
+    const allCartItems = await prisma.user.findUnique({
+      select: { cartItems: true },
+      where: { id },
+    });
+
+    // id not found, allCartItems === null.
+    if (!allCartItems) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: `${id} is invalid.` });
+    }
+
+    // id found, return allCartItems
+    res.status(httpStatus.OK).json(allCartItems);
+  } catch (error) {
+    // handle any other error.
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json(getErrorMessage(error));
+  } finally {
+    // disconnect from db.
+    await prisma.$disconnect();
+  }
+}
+
+// upsert a cart item to given user.
+export async function upsertCartItem(req: Request, res: Response) {
+  const { id: userId } = req.params;
+  const { quantity, productId } = req.body;
+
+  try {
+    const newCartItem = await prisma.cartItem.upsert({
+      where: { productId_userId: { productId, userId } },
+      create: { productId, userId, quantity },
+      update: { quantity },
+    });
+
+    res.status(httpStatus.OK).json(newCartItem);
+  } catch (error) {
+    // handle any other error.
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json(getErrorMessage(error));
+  } finally {
+    // disconnect from db.
+    await prisma.$disconnect();
+  }
+}
+
 // [ADMIN] get all users
 export async function getUsers(req: Request, res: Response) {
   try {

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.createUser = void 0;
+exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
 const index_1 = __importDefault(require("../models/index"));
 const http_status_1 = __importDefault(require("http-status"));
 const error_util_1 = require("../utils/error-util");
@@ -53,6 +53,59 @@ function createUser(req, res) {
     });
 }
 exports.createUser = createUser;
+// get CartItems of a user. returns json or null
+function getCartItems(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { id } = req.params;
+        try {
+            const allCartItems = yield index_1.default.user.findUnique({
+                select: { cartItems: true },
+                where: { id },
+            });
+            // id not found, allCartItems === null.
+            if (!allCartItems) {
+                return res
+                    .status(http_status_1.default.BAD_REQUEST)
+                    .json({ error: `${id} is invalid.` });
+            }
+            // id found, return allCartItems
+            res.status(http_status_1.default.OK).json(allCartItems);
+        }
+        catch (error) {
+            // handle any other error.
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.getCartItems = getCartItems;
+// upsert a cart item to given user.
+function upsertCartItem(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { id: userId } = req.params;
+        const { quantity, productId } = req.body;
+        try {
+            const newCartItem = yield index_1.default.cartItem.upsert({
+                where: { productId_userId: { productId, userId } },
+                create: { productId, userId, quantity },
+                update: { quantity },
+            });
+            res.status(http_status_1.default.OK).json(newCartItem);
+        }
+        catch (error) {
+            // handle any other error.
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.upsertCartItem = upsertCartItem;
 // [ADMIN] get all users
 function getUsers(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
