@@ -36,7 +36,7 @@ export async function createUser(req: Request, res: Response) {
     // handle any other error.
     let errMessage = getErrorMessage(error);
 
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ error: errMessage });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json(errMessage);
   } finally {
     // disconnect from db.
     await prisma.$disconnect();

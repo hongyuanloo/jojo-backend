@@ -65,7 +65,7 @@ export async function authenticateUser(req: Request, res: Response) {
     // handle any other error.
     const errMessage = getErrorMessage(error);
 
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ error: errMessage });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json(errMessage);
   } finally {
     // disconnect from db.
     await prisma.$disconnect();
@@ -102,6 +102,6 @@ export function getNewAccessToken(req: Request, res: Response) {
     // handle any other error.
     const errMessage = getErrorMessage(error);
 
-    res.status(httpStatus.UNAUTHORIZED).json({ error: errMessage });
+    res.status(httpStatus.UNAUTHORIZED).json(errMessage);
   }
 }

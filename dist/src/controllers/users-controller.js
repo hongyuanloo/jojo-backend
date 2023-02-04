@@ -44,7 +44,7 @@ function createUser(req, res) {
         catch (error) {
             // handle any other error.
             let errMessage = (0, error_util_1.getErrorMessage)(error);
-            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ error: errMessage });
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json(errMessage);
         }
         finally {
             // disconnect from db.

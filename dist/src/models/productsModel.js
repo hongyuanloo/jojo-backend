@@ -18,7 +18,7 @@ function createProducts() {
             const products = yield prisma.product.createMany({
                 data: [
                     {
-                        name: "Awesome Cotton Bacon",
+                        title: "Awesome Cotton Bacon",
                         description: "The slim & simple Maple Gaming Keyboard from Dev Byte comes with a sleek body and 7- Color RGB LED Back-lighting for smart functionality",
                         price: "96",
                         categories: ["Electronics"],
@@ -28,7 +28,7 @@ function createProducts() {
                         ],
                     },
                     {
-                        name: "Tasty Bronze Chips",
+                        title: "Tasty Bronze Chips",
                         description: "The beautiful range of Apple Naturalé that has an exciting mix of natural ingredients. With the Goodness of 100% Natural Ingredients",
                         price: "475",
                         categories: ["Others"],

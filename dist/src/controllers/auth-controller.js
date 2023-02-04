@@ -62,7 +62,7 @@ function authenticateUser(req, res) {
         catch (error) {
             // handle any other error.
             const errMessage = (0, error_util_1.getErrorMessage)(error);
-            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ error: errMessage });
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json(errMessage);
         }
         finally {
             // disconnect from db.
@@ -94,7 +94,7 @@ function getNewAccessToken(req, res) {
     catch (error) {
         // handle any other error.
         const errMessage = (0, error_util_1.getErrorMessage)(error);
-        res.status(http_status_1.default.UNAUTHORIZED).json({ error: errMessage });
+        res.status(http_status_1.default.UNAUTHORIZED).json(errMessage);
     }
 }
 exports.getNewAccessToken = getNewAccessToken;

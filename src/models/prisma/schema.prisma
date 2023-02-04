@@ -24,7 +24,7 @@ enum role {
 
 model product {
   id          String      @id @default(uuid())
-  name        String      @unique
+  title       String      @unique
   description String
   price       Decimal     @db.Decimal(10, 2)
   isFeatured  Boolean     @default(false)

@@ -16,9 +16,7 @@ exports.verifyJWTRefreshToken = exports.extractTokenFromBearerToken = exports.ge
 const bcrypt_1 = require("bcrypt");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
-// import dotenv from "dotenv";
-// dotenv.config();
-// hash password
+// given password, hash it with saltRounds defined.
 function hashPassword(password) {
     return __awaiter(this, void 0, void 0, function* () {
         const saltRounds = 10;
@@ -31,6 +29,7 @@ function hashPassword(password) {
     });
 }
 exports.hashPassword = hashPassword;
+// compare if password matches hashedPassword,
 function isPasswordMatched(password, hashedPassword) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -42,12 +41,14 @@ function isPasswordMatched(password, hashedPassword) {
     });
 }
 exports.isPasswordMatched = isPasswordMatched;
+// generate 64 random bytes in string.
 function generateRandomBytes() {
     /* generate 64 random bytes and convert to hex format.
     -Use this to generate "ACCESS_TOKEN_SECRET" and "REFRESH_TOKEN_SECRET" */
     const buffer = crypto_1.default.randomBytes(64).toString("hex");
     return buffer;
 }
+// given tokenPayLoad, generate access token using secret key.
 function generateAccessToken(tokenPayLoad) {
     // generate access token based on tokenPayLoad
     const secretKey = process.env.ACCESS_TOKEN_SECRET;
@@ -57,6 +58,7 @@ function generateAccessToken(tokenPayLoad) {
     });
 }
 exports.generateAccessToken = generateAccessToken;
+// given tokenPayLoad, generate refresh token using secret key.
 function generateRefreshToken(tokenPayLoad) {
     // generate refresh token based on tokenPayLoad
     const secretKey = process.env.REFRESH_TOKEN_SECRET;
@@ -66,10 +68,12 @@ function generateRefreshToken(tokenPayLoad) {
     });
 }
 exports.generateRefreshToken = generateRefreshToken;
+// given Authentication Bearer Token, extract the token and return
 function extractTokenFromBearerToken(bearerToken) {
     return bearerToken.split(" ")[1];
 }
 exports.extractTokenFromBearerToken = extractTokenFromBearerToken;
+// given jwtToken, verify if token is still valid(or not expired).
 function verifyJWTRefreshToken(token) {
     try {
         //return decoded payload object
