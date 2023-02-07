@@ -7,16 +7,18 @@ import {
   generateAccessToken,
   generateRefreshToken,
   isPasswordMatched,
-  ItokenPayLoad,
   verifyJWTRefreshToken,
 } from "../services/auth-service";
 import { JwtPayload } from "jsonwebtoken";
+import { ItokenPayLoad } from "../typeDeclaration";
 
 // Given email and password, authenticate and return { accessToken, refreshToken, user: { id, username, role },}
 export async function authenticateUser(req: Request, res: Response) {
   //check email and password
   const userInfor = { ...req.body };
+  // console.log("--authenticateUSERres.locals.user--", res.locals.user);
   userInfor.email = userInfor.email.toLowerCase();
+  // console.log("--userInfor--", userInfor);
 
   try {
     // check if email is found
@@ -46,20 +48,21 @@ export async function authenticateUser(req: Request, res: Response) {
         .json({ error: "Wrong password." });
     }
 
+    const { id, username, role } = foundUser;
+
     // everything is good, generate accessToken and refreshToken generateRefreshToken
     const tokenPayload: ItokenPayLoad = {
-      email: foundUser.email,
-      role: foundUser.role,
+      id: id,
+      username: username,
+      role: role,
     };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
-    const { id, username, role } = foundUser;
-
     res.status(httpStatus.OK).json({
       accessToken,
       refreshToken,
-      user: { id, username, role },
+      user: tokenPayload,
     });
   } catch (error) {
     // handle any other error.
@@ -77,7 +80,7 @@ export function getNewAccessToken(req: Request, res: Response) {
   try {
     // extract refreshToken
     const refreshToken = extractTokenFromBearerToken(
-      req.headers.authorization || ""
+      req.headers.authorization ?? ""
     );
 
     // token is ""
@@ -88,20 +91,16 @@ export function getNewAccessToken(req: Request, res: Response) {
     }
 
     //if refreshToken is ok, return decoded payload object
-    const decodedTokenPayload = verifyJWTRefreshToken(refreshToken);
-
-    const { email, role } = decodedTokenPayload as JwtPayload;
+    const { id, username, role } = verifyJWTRefreshToken(refreshToken);
 
     // form new tokenPayload and generate new accessToken
-    const tokenPayload: ItokenPayLoad = { email, role };
+    const tokenPayload: ItokenPayLoad = { id, username, role };
     const newAccessToken = generateAccessToken(tokenPayload);
 
     // return new accessToken
     res.status(httpStatus.OK).json({ accessToken: newAccessToken });
   } catch (error) {
     // handle any other error.
-    const errMessage = getErrorMessage(error);
-
-    res.status(httpStatus.UNAUTHORIZED).json(errMessage);
+    res.status(httpStatus.UNAUTHORIZED).json(getErrorMessage(error));
   }
 }

@@ -75,6 +75,7 @@ export async function getCartItems(req: Request, res: Response) {
 export async function upsertCartItem(req: Request, res: Response) {
   const { id: userId } = req.params;
   const { quantity, productId } = req.body;
+  console.log("--upsertCartItem--res.locals.user:", res.locals.user);
 
   try {
     const newCartItem = await prisma.cartItem.upsert({

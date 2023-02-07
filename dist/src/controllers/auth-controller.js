@@ -22,7 +22,9 @@ function authenticateUser(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         //check email and password
         const userInfor = Object.assign({}, req.body);
+        // console.log("--authenticateUSERres.locals.user--", res.locals.user);
         userInfor.email = userInfor.email.toLowerCase();
+        // console.log("--userInfor--", userInfor);
         try {
             // check if email is found
             const foundUser = yield models_1.default.user.findUnique({
@@ -45,18 +47,19 @@ function authenticateUser(req, res) {
                     .status(http_status_1.default.FORBIDDEN)
                     .json({ error: "Wrong password." });
             }
+            const { id, username, role } = foundUser;
             // everything is good, generate accessToken and refreshToken generateRefreshToken
             const tokenPayload = {
-                email: foundUser.email,
-                role: foundUser.role,
+                id: id,
+                username: username,
+                role: role,
             };
             const accessToken = (0, auth_service_1.generateAccessToken)(tokenPayload);
             const refreshToken = (0, auth_service_1.generateRefreshToken)(tokenPayload);
-            const { id, username, role } = foundUser;
             res.status(http_status_1.default.OK).json({
                 accessToken,
                 refreshToken,
-                user: { id, username, role },
+                user: tokenPayload,
             });
         }
         catch (error) {
@@ -73,9 +76,10 @@ function authenticateUser(req, res) {
 exports.authenticateUser = authenticateUser;
 // Given refreshToken that is not expired, return new accessToken.
 function getNewAccessToken(req, res) {
+    var _a;
     try {
         // extract refreshToken
-        const refreshToken = (0, auth_service_1.extractTokenFromBearerToken)(req.headers.authorization || "");
+        const refreshToken = (0, auth_service_1.extractTokenFromBearerToken)((_a = req.headers.authorization) !== null && _a !== void 0 ? _a : "");
         // token is ""
         if (!refreshToken) {
             return res
@@ -83,18 +87,16 @@ function getNewAccessToken(req, res) {
                 .json({ error: "invalid token." });
         }
         //if refreshToken is ok, return decoded payload object
-        const decodedTokenPayload = (0, auth_service_1.verifyJWTRefreshToken)(refreshToken);
-        const { email, role } = decodedTokenPayload;
+        const { id, username, role } = (0, auth_service_1.verifyJWTRefreshToken)(refreshToken);
         // form new tokenPayload and generate new accessToken
-        const tokenPayload = { email, role };
+        const tokenPayload = { id, username, role };
         const newAccessToken = (0, auth_service_1.generateAccessToken)(tokenPayload);
         // return new accessToken
         res.status(http_status_1.default.OK).json({ accessToken: newAccessToken });
     }
     catch (error) {
         // handle any other error.
-        const errMessage = (0, error_util_1.getErrorMessage)(error);
-        res.status(http_status_1.default.UNAUTHORIZED).json(errMessage);
+        res.status(http_status_1.default.UNAUTHORIZED).json((0, error_util_1.getErrorMessage)(error));
     }
 }
 exports.getNewAccessToken = getNewAccessToken;

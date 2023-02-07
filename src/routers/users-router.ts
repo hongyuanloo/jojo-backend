@@ -10,13 +10,14 @@ import {
   updateUser,
   upsertCartItem,
 } from "../controllers/users-controller";
+import { authenticateToken } from "../middlewares/auth-middleware";
 
 const router = Router();
 
-router.get("/:id/cartitems", getCartItems); //ok
-router.post("/:id/cartitems", upsertCartItem); //ok
-router.get("/:id/orders", getOrders); //ok
-router.post("/:id/orders", createOrder); //ok
+router.get("/:id/cartitems", authenticateToken, getCartItems); //protected route ok
+router.post("/:id/cartitems", authenticateToken, upsertCartItem); //protected route ok
+router.get("/:id/orders", authenticateToken, getOrders); //protected route ok
+router.post("/:id/orders", authenticateToken, createOrder); //protected route ok
 router.post("/", createUser); // ok
 
 // For development/admin use:

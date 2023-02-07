@@ -87,6 +87,7 @@ function upsertCartItem(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id: userId } = req.params;
         const { quantity, productId } = req.body;
+        console.log("--upsertCartItem--res.locals.user:", res.locals.user);
         try {
             const newCartItem = yield index_1.default.cartItem.upsert({
                 where: { productId_userId: { productId, userId } },

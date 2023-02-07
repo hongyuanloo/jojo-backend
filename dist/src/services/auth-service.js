@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyJWTRefreshToken = exports.extractTokenFromBearerToken = exports.generateRefreshToken = exports.generateAccessToken = exports.isPasswordMatched = exports.hashPassword = void 0;
+exports.verifyJWTRefreshToken = exports.verifyJWTAccessToken = exports.extractTokenFromBearerToken = exports.generateRefreshToken = exports.generateAccessToken = exports.isPasswordMatched = exports.hashPassword = void 0;
 const bcrypt_1 = require("bcrypt");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -73,12 +73,28 @@ function extractTokenFromBearerToken(bearerToken) {
     return bearerToken.split(" ")[1];
 }
 exports.extractTokenFromBearerToken = extractTokenFromBearerToken;
-// given jwtToken, verify if token is still valid(or not expired).
+// given jwtToken, if token is valid(or not expired) return ItokenPayLoad
+function verifyJWTAccessToken(token) {
+    try {
+        //return decoded payload object
+        //error if token mismatch or expired.
+        const { id, username, role } = jsonwebtoken_1.default.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        // return only "ItokenPayLoad" information
+        return { id, username, role };
+    }
+    catch (err) {
+        throw err;
+    }
+}
+exports.verifyJWTAccessToken = verifyJWTAccessToken;
+// given jwtToken, if token is valid(or not expired) return ItokenPayLoad
 function verifyJWTRefreshToken(token) {
     try {
         //return decoded payload object
         //error if token mismatch or expired.
-        return jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        const { id, username, role } = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        // return only "ItokenPayLoad" information
+        return { id, username, role };
     }
     catch (err) {
         throw err;

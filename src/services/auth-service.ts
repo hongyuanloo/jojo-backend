@@ -1,6 +1,7 @@
 import { compare, hash } from "bcrypt";
 import jwt, { Secret } from "jsonwebtoken";
 import crypto from "crypto";
+import { ItokenPayLoad, IUserInfoJwtPayload } from "../typeDeclaration";
 
 // given password, hash it with saltRounds defined.
 export async function hashPassword(password: string): Promise<string> {
@@ -32,12 +33,6 @@ function generateRandomBytes() {
   return buffer;
 }
 
-// interface for token payload used in jwt.
-export interface ItokenPayLoad {
-  email: string;
-  role: string;
-}
-
 // given tokenPayLoad, generate access token using secret key.
 export function generateAccessToken(tokenPayLoad: ItokenPayLoad): string {
   // generate access token based on tokenPayLoad
@@ -65,12 +60,35 @@ export function extractTokenFromBearerToken(bearerToken: string): string {
   return bearerToken.split(" ")[1];
 }
 
-// given jwtToken, verify if token is still valid(or not expired).
+// given jwtToken, if token is valid(or not expired) return ItokenPayLoad
+export function verifyJWTAccessToken(token: string) {
+  try {
+    //return decoded payload object
+    //error if token mismatch or expired.
+    const { id, username, role } = jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET as Secret
+    ) as IUserInfoJwtPayload;
+
+    // return only "ItokenPayLoad" information
+    return { id, username, role } as ItokenPayLoad;
+  } catch (err) {
+    throw err;
+  }
+}
+
+// given jwtToken, if token is valid(or not expired) return ItokenPayLoad
 export function verifyJWTRefreshToken(token: string) {
   try {
     //return decoded payload object
     //error if token mismatch or expired.
-    return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as Secret);
+    const { id, username, role } = jwt.verify(
+      token,
+      process.env.REFRESH_TOKEN_SECRET as Secret
+    ) as IUserInfoJwtPayload;
+
+    // return only "ItokenPayLoad" information
+    return { id, username, role } as ItokenPayLoad;
   } catch (err) {
     throw err;
   }
