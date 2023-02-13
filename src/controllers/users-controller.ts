@@ -48,8 +48,9 @@ export async function getCartItems(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
+    // select all cartItems and include full details of product
     const allCartItems = await prisma.user.findUnique({
-      select: { cartItems: true },
+      select: { cartItems: { include: { product: true } } },
       where: { id },
     });
 

@@ -9,6 +9,6 @@ const router = Router();
 
 router.post("/login1", authenticateToken, authenticateUser); //!delete
 router.post("/login", authenticateUser); // ok
-router.post("/access-token", getNewAccessToken); // ok
+router.get("/access-token", getNewAccessToken); // ok
 
 export default router;

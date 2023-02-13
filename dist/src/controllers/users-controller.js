@@ -58,8 +58,9 @@ function getCartItems(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id } = req.params;
         try {
+            // select all cartItems and include full details of product
             const allCartItems = yield index_1.default.user.findUnique({
-                select: { cartItems: true },
+                select: { cartItems: { include: { product: true } } },
                 where: { id },
             });
             // id not found, allCartItems === null.
