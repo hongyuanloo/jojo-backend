@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { getErrorMessage } from "../utils/error-util";
 import { hashPassword } from "../services/auth-service";
+import { stripe } from "../configs/stripe";
 
 export async function createUser(req: Request, res: Response) {
   // store information into newUser object
@@ -288,6 +289,183 @@ export async function updateUser(req: Request, res: Response) {
     const errMessage = getErrorMessage(error);
 
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json(errMessage);
+  } finally {
+    // disconnect from db.
+    await prisma.$disconnect();
+  }
+}
+
+interface ICartItem {
+  id: string;
+  productId: string;
+  quantity: number;
+  product: IProduct;
+  [key: string]: any;
+}
+
+interface IProduct {
+  id: string;
+  title: string;
+  price: string;
+  [key: string]: any;
+}
+/** given user id and cartItem[]:
+ * - create new order, remove all cart items.
+ * - create checkout session url
+ * - return checkout session url and new order id
+ */
+export async function createCheckoutSession(req: Request, res: Response) {
+  // get id and all products from req.body
+  const { id: userId } = req.params;
+  const { cartItems }: { cartItems: ICartItem[] } = req.body;
+  console.log("--checkOut-cartItems--:", cartItems);
+
+  //! temporary data.
+  // const cartItems = [
+  //   {
+  //     id: "c089da28-3d68-4c5a-a3a0-46c96e376498",
+  //     productId: "0bc38d62-65c4-493d-a3f7-8957504e6695",
+  //     userId: "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+  //     quantity: 3,
+  //     createdAt: "2023-02-14T13:27:44.978Z",
+  //     updatedAt: "2023-02-14T13:27:44.978Z",
+  //     product: {
+  //       id: "0bc38d62-65c4-493d-a3f7-8957504e6695",
+  //       title: "Oriental Wooden Pizza",
+  //       description:
+  //         "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
+  //       price: "600",
+  //       isFeatured: true,
+  //       categories: ["Electronics"],
+  //       images: [
+  //         "https://api.lorem.space/image/watch?w=640&h=480&r=4776",
+  //         "https://api.lorem.space/image/watch?w=640&h=480&r=8741",
+  //         "https://api.lorem.space/image/watch?w=640&h=480&r=6231",
+  //       ],
+  //       createdAt: "2023-02-04T02:51:23.871Z",
+  //       updatedAt: "2023-02-04T03:19:52.421Z",
+  //     },
+  //   },
+  //   {
+  //     id: "2cbf4082-4b80-4420-8fe4-ec728178902f",
+  //     productId: "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+  //     userId: "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+  //     quantity: 8,
+  //     createdAt: "2023-02-14T13:28:41.536Z",
+  //     updatedAt: "2023-02-14T13:28:41.536Z",
+  //     product: {
+  //       id: "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+  //       title: "Oriental Bronze Ball",
+  //       description:
+  //         "The Apollotech B340 is an affordable wireless mouse with reliable connectivity, 12 months battery life and modern design",
+  //       price: "332",
+  //       isFeatured: true,
+  //       categories: ["Clothes"],
+  //       images: [
+  //         "https://api.lorem.space/image/fashion?w=640&h=480&r=2751",
+  //         "https://api.lorem.space/image/fashion?w=640&h=480&r=1343",
+  //         "https://api.lorem.space/image/fashion?w=640&h=480&r=5568",
+  //       ],
+  //       createdAt: "2023-02-04T02:50:45.310Z",
+  //       updatedAt: "2023-02-04T02:50:45.310Z",
+  //     },
+  //   },
+  // ];
+
+  // handle error if cartItems is empty.
+  if (!cartItems?.length) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ error: "cartItems is empty." });
+  }
+
+  // map cartItems to orderItems and calculate totalPrice. Used to create new order.
+  let totalPrice = 0;
+  const orderItems = cartItems.map((item) => {
+    const { productId, quantity, product } = item;
+    totalPrice += parseInt(product.price) * quantity;
+    return { productId, quantity };
+  });
+
+  // map all cartItems into lineItems to display in stripe checkout.
+  const lineItems = cartItems.map((item) => {
+    const { quantity, product } = item;
+    const { title, price } = product;
+
+    return {
+      price_data: {
+        currency: "sgd",
+        product_data: {
+          name: title,
+        },
+        unit_amount: parseInt(price) * 100,
+      },
+      quantity,
+    };
+  });
+
+  try {
+    // create new order and remove all cart items
+    const newOrder = await createOrder_clearCart(
+      userId,
+      totalPrice,
+      orderItems
+    );
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: lineItems,
+      success_url: `${process.env.CLIENT_URL}/checkout?success=true`,
+      cancel_url: `${process.env.CLIENT_URL}/checkout?canceled=true`,
+    });
+
+    // return session.url and newOrder.id to client.
+    res
+      .status(httpStatus.OK)
+      .json({ url: session.url, newOrderID: newOrder?.id });
+  } catch (error) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json(getErrorMessage(error));
+  }
+}
+
+// create new order and remove all cart items, return new order created.
+export async function createOrder_clearCart(
+  userId: string,
+  totalPaid: number,
+  orderItems: { productId: string; quantity: number }[]
+) {
+  try {
+    // with given data, create a new order with paidAt=null.
+    const newOrder = await prisma.order.create({
+      data: {
+        userId,
+        totalPaid,
+        paidAt: new Date().toISOString(),
+        orderItems: { createMany: { data: orderItems } },
+      },
+    });
+    // console.log("--newOrder--", newOrder); //!
+
+    // remove all cart items of given user.
+    const totalCartItemsRemoved = await prisma.cartItem.deleteMany({
+      where: { userId },
+    });
+    // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved); //!
+
+    /* return new order created
+    - example of newOrder created: 
+     {
+      "id": "d3e6d508-2761-4a99-a388-f68b775173c8",
+      "userId": "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+      "totalPaid": "88.45",
+      "paidAt": null, //"2023-09-04T15:36:25.679Z", 
+      "createdAt": "2023-02-04T15:53:33.839Z"
+    }    */
+    return newOrder;
+  } catch (error) {
+    // handle any other error.
+    throw new Error(getErrorMessage(error).error);
   } finally {
     // disconnect from db.
     await prisma.$disconnect();

@@ -4,6 +4,7 @@ import cors from "cors";
 import usersRouter from "./users-router";
 import productsRouter from "./products-router";
 import authRouter from "./auth-router";
+import ordersRouter from "./orders-router";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/v1/users", usersRouter);
 app.use("/v1/products", productsRouter);
 app.use("/v1/auth", authRouter);
+app.use("/v1/orders", ordersRouter);
 
 app.listen(port, () => {
   console.log(`⚡️[server]: --Server is running at http://localhost:${port}`);

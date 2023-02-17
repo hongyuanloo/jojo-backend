@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createCheckoutSession,
   createOrder,
   createUser,
   deleteUser,
@@ -19,6 +20,11 @@ router.post("/:id/cartitems", authenticateToken, upsertCartItem); //protected ro
 router.get("/:id/orders", authenticateToken, getOrders); //protected route ok
 router.post("/:id/orders", authenticateToken, createOrder); //protected route ok
 router.post("/", createUser); // ok
+router.post(
+  "/:id/create-checkout-session",
+  authenticateToken,
+  createCheckoutSession
+); //ok
 
 // For development/admin use:
 router.get("/:id", getUser); //ok

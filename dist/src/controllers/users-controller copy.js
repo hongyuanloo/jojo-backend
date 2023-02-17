@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createOrder_clearCart = exports.createCheckoutSession = exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.createOrder = exports.getOrders = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
+exports.createOrder_clearCart = exports.createCheckoutSession = exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.updateOrderStatus = exports.createOrder = exports.getOrders = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
 const index_1 = __importDefault(require("../models/index"));
 const http_status_1 = __importDefault(require("http-status"));
 const error_util_1 = require("../utils/error-util");
@@ -198,6 +198,42 @@ function createOrder(req, res) {
     });
 }
 exports.createOrder = createOrder;
+// given paidAt, update current
+function updateOrderStatus(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { orderId } = req.params;
+        const { paidAt } = req.body;
+        // console.log("--req.body--", req.body);
+        try {
+            // check if id is valid.
+            const foundOrder = yield index_1.default.order.findUnique({
+                where: { id: orderId },
+            });
+            // id not found, return { error: `${id} is invalid.` }
+            if (!foundOrder) {
+                return res
+                    .status(http_status_1.default.BAD_REQUEST)
+                    .json({ error: `${orderId} is invalid.` });
+            }
+            //update a user
+            const updatedOrder = yield index_1.default.order.update({
+                where: { id: orderId },
+                data: { paidAt },
+            });
+            // console.log("--updatedOrder--", updatedOrder);
+            res.status(http_status_1.default.OK).json(updatedOrder);
+        }
+        catch (error) {
+            // handle any other error.
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.updateOrderStatus = updateOrderStatus;
 // [ADMIN] get all users
 function getUsers(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -314,74 +350,64 @@ function updateUser(req, res) {
     });
 }
 exports.updateUser = updateUser;
-/** given user id and cartItem[]:
- * - create new order, remove all cart items.
- * - create checkout session url
- * - return checkout session url and new order id
- */
-function createCheckoutSession(req, res) {
+function createCheckoutSession(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         // get id and all products from req.body
         const { id: userId } = req.params;
-        const { cartItems } = req.body;
-        console.log("--checkOut-cartItems--:", cartItems);
+        // const { cartItems } = req.body; //TODO activate.
+        // console.log("--checkOut-cartItems--:", cartItems);
         //! temporary data.
-        // const cartItems = [
-        //   {
-        //     id: "c089da28-3d68-4c5a-a3a0-46c96e376498",
-        //     productId: "0bc38d62-65c4-493d-a3f7-8957504e6695",
-        //     userId: "c742ac1e-79a5-4335-b41b-c10c8a91059f",
-        //     quantity: 3,
-        //     createdAt: "2023-02-14T13:27:44.978Z",
-        //     updatedAt: "2023-02-14T13:27:44.978Z",
-        //     product: {
-        //       id: "0bc38d62-65c4-493d-a3f7-8957504e6695",
-        //       title: "Oriental Wooden Pizza",
-        //       description:
-        //         "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
-        //       price: "600",
-        //       isFeatured: true,
-        //       categories: ["Electronics"],
-        //       images: [
-        //         "https://api.lorem.space/image/watch?w=640&h=480&r=4776",
-        //         "https://api.lorem.space/image/watch?w=640&h=480&r=8741",
-        //         "https://api.lorem.space/image/watch?w=640&h=480&r=6231",
-        //       ],
-        //       createdAt: "2023-02-04T02:51:23.871Z",
-        //       updatedAt: "2023-02-04T03:19:52.421Z",
-        //     },
-        //   },
-        //   {
-        //     id: "2cbf4082-4b80-4420-8fe4-ec728178902f",
-        //     productId: "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
-        //     userId: "c742ac1e-79a5-4335-b41b-c10c8a91059f",
-        //     quantity: 8,
-        //     createdAt: "2023-02-14T13:28:41.536Z",
-        //     updatedAt: "2023-02-14T13:28:41.536Z",
-        //     product: {
-        //       id: "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
-        //       title: "Oriental Bronze Ball",
-        //       description:
-        //         "The Apollotech B340 is an affordable wireless mouse with reliable connectivity, 12 months battery life and modern design",
-        //       price: "332",
-        //       isFeatured: true,
-        //       categories: ["Clothes"],
-        //       images: [
-        //         "https://api.lorem.space/image/fashion?w=640&h=480&r=2751",
-        //         "https://api.lorem.space/image/fashion?w=640&h=480&r=1343",
-        //         "https://api.lorem.space/image/fashion?w=640&h=480&r=5568",
-        //       ],
-        //       createdAt: "2023-02-04T02:50:45.310Z",
-        //       updatedAt: "2023-02-04T02:50:45.310Z",
-        //     },
-        //   },
-        // ];
+        const cartItems = [
+            {
+                id: "c089da28-3d68-4c5a-a3a0-46c96e376498",
+                productId: "0bc38d62-65c4-493d-a3f7-8957504e6695",
+                userId: "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+                quantity: 3,
+                createdAt: "2023-02-14T13:27:44.978Z",
+                updatedAt: "2023-02-14T13:27:44.978Z",
+                product: {
+                    id: "0bc38d62-65c4-493d-a3f7-8957504e6695",
+                    title: "Oriental Wooden Pizza",
+                    description: "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
+                    price: "600",
+                    isFeatured: true,
+                    categories: ["Electronics"],
+                    images: [
+                        "https://api.lorem.space/image/watch?w=640&h=480&r=4776",
+                        "https://api.lorem.space/image/watch?w=640&h=480&r=8741",
+                        "https://api.lorem.space/image/watch?w=640&h=480&r=6231",
+                    ],
+                    createdAt: "2023-02-04T02:51:23.871Z",
+                    updatedAt: "2023-02-04T03:19:52.421Z",
+                },
+            },
+            {
+                id: "2cbf4082-4b80-4420-8fe4-ec728178902f",
+                productId: "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+                userId: "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+                quantity: 8,
+                createdAt: "2023-02-14T13:28:41.536Z",
+                updatedAt: "2023-02-14T13:28:41.536Z",
+                product: {
+                    id: "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+                    title: "Oriental Bronze Ball",
+                    description: "The Apollotech B340 is an affordable wireless mouse with reliable connectivity, 12 months battery life and modern design",
+                    price: "332",
+                    isFeatured: true,
+                    categories: ["Clothes"],
+                    images: [
+                        "https://api.lorem.space/image/fashion?w=640&h=480&r=2751",
+                        "https://api.lorem.space/image/fashion?w=640&h=480&r=1343",
+                        "https://api.lorem.space/image/fashion?w=640&h=480&r=5568",
+                    ],
+                    createdAt: "2023-02-04T02:50:45.310Z",
+                    updatedAt: "2023-02-04T02:50:45.310Z",
+                },
+            },
+        ];
         // handle error if cartItems is empty.
-        if (!(cartItems === null || cartItems === void 0 ? void 0 : cartItems.length)) {
-            return res
-                .status(http_status_1.default.BAD_REQUEST)
-                .json({ error: "cartItems is empty." });
-        }
+        if (!cartItems)
+            throw new Error("cartItems is empty.");
         // map cartItems to orderItems and calculate totalPrice. Used to create new order.
         let totalPrice = 0;
         const orderItems = cartItems.map((item) => {
@@ -414,6 +440,8 @@ function createCheckoutSession(req, res) {
                 success_url: `${process.env.CLIENT_URL}/checkout?success=true`,
                 cancel_url: `${process.env.CLIENT_URL}/checkout?canceled=true`,
             });
+            // if (session.url) res.redirect(httpStatus.SEE_OTHER, session.url);
+            // if (session.url) res.status(httpStatus.SEE_OTHER).redirect(session.url);
             // return session.url and newOrder.id to client.
             res
                 .status(http_status_1.default.OK)
@@ -422,6 +450,12 @@ function createCheckoutSession(req, res) {
         catch (error) {
             res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
         }
+        //create session based on cartItems.
+        // redirect to session.
+        // if success:
+        // - redirect to BE-success API
+        // - then update order paid date?
+        // - then redirect to FE with success?
     });
 }
 exports.createCheckoutSession = createCheckoutSession;
@@ -438,12 +472,12 @@ function createOrder_clearCart(userId, totalPaid, orderItems) {
                     orderItems: { createMany: { data: orderItems } },
                 },
             });
-            // console.log("--newOrder--", newOrder); //!
+            console.log("--newOrder--", newOrder);
             // remove all cart items of given user.
             const totalCartItemsRemoved = yield index_1.default.cartItem.deleteMany({
                 where: { userId },
             });
-            // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved); //!
+            console.log("--totalCartItemsRemoved--", totalCartItemsRemoved);
             /* return new order created
             - example of newOrder created:
              {
@@ -457,7 +491,7 @@ function createOrder_clearCart(userId, totalPaid, orderItems) {
         }
         catch (error) {
             // handle any other error.
-            throw new Error((0, error_util_1.getErrorMessage)(error).error);
+            console.log("create new order fails", (0, error_util_1.getErrorMessage)(error));
         }
         finally {
             // disconnect from db.
@@ -466,4 +500,4 @@ function createOrder_clearCart(userId, totalPaid, orderItems) {
     });
 }
 exports.createOrder_clearCart = createOrder_clearCart;
-//# sourceMappingURL=users-controller.js.map
+//# sourceMappingURL=users-controller%20copy.js.map

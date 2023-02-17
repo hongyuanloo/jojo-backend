@@ -8,12 +8,13 @@ router.get("/:id/cartitems", auth_middleware_1.authenticateToken, users_controll
 router.post("/:id/cartitems", auth_middleware_1.authenticateToken, users_controller_1.upsertCartItem); //protected route ok
 router.get("/:id/orders", auth_middleware_1.authenticateToken, users_controller_1.getOrders); //protected route ok
 router.post("/:id/orders", auth_middleware_1.authenticateToken, users_controller_1.createOrder); //protected route ok
+router.put("/:id/orders/:orderId", auth_middleware_1.authenticateToken, updateOrderStatus); //protected route ok
 router.post("/", users_controller_1.createUser); // ok
-router.post("/:id/create-checkout-session", auth_middleware_1.authenticateToken, users_controller_1.createCheckoutSession); //ok
+router.post("/:id/create-checkout-session", users_controller_1.createCheckoutSession); //TODO add authenticateToken
 // For development/admin use:
 router.get("/:id", users_controller_1.getUser); //ok
 router.get("/", users_controller_1.getUsers); //ok
 router.delete("/:id", users_controller_1.deleteUser); //ok
 router.put("/:id", users_controller_1.updateUser); //ok
 exports.default = router;
-//# sourceMappingURL=users-router.js.map
+//# sourceMappingURL=users-router%20copy.js.map
