@@ -3,6 +3,7 @@ import {
   createCheckoutSession,
   createOrder,
   createUser,
+  deleteCartItem,
   deleteUser,
   getCartItems,
   getOrders,
@@ -17,6 +18,7 @@ const router = Router();
 
 router.get("/:id/cartitems", authenticateToken, getCartItems); //protected route ok
 router.post("/:id/cartitems", authenticateToken, upsertCartItem); //protected route ok
+router.delete("/:id/cartitems/:productId", authenticateToken, deleteCartItem); //protected route ok
 router.get("/:id/orders", authenticateToken, getOrders); //protected route ok
 router.post("/:id/orders", authenticateToken, createOrder); //protected route ok
 router.post("/", createUser); // ok

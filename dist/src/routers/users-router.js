@@ -6,6 +6,7 @@ const auth_middleware_1 = require("../middlewares/auth-middleware");
 const router = (0, express_1.Router)();
 router.get("/:id/cartitems", auth_middleware_1.authenticateToken, users_controller_1.getCartItems); //protected route ok
 router.post("/:id/cartitems", auth_middleware_1.authenticateToken, users_controller_1.upsertCartItem); //protected route ok
+router.delete("/:id/cartitems/:productId", auth_middleware_1.authenticateToken, users_controller_1.deleteCartItem); //protected route ok
 router.get("/:id/orders", auth_middleware_1.authenticateToken, users_controller_1.getOrders); //protected route ok
 router.post("/:id/orders", auth_middleware_1.authenticateToken, users_controller_1.createOrder); //protected route ok
 router.post("/", users_controller_1.createUser); // ok

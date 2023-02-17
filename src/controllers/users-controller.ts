@@ -73,7 +73,7 @@ export async function getCartItems(req: Request, res: Response) {
   }
 }
 
-// upsert a cart item to given user.
+// upsert a cart item from given user.
 export async function upsertCartItem(req: Request, res: Response) {
   const { id: userId } = req.params;
   const { quantity, productId } = req.body;
@@ -87,6 +87,36 @@ export async function upsertCartItem(req: Request, res: Response) {
     });
 
     res.status(httpStatus.OK).json(newCartItem);
+  } catch (error) {
+    // handle any other error.
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json(getErrorMessage(error));
+  } finally {
+    // disconnect from db.
+    await prisma.$disconnect();
+  }
+}
+
+// delete a cart item from given user.
+export async function deleteCartItem(req: Request, res: Response) {
+  const { id: userId, productId } = req.params;
+
+  console.log("--upsertCartItem--res.locals.user:", res.locals.user);
+
+  try {
+    // give userId and productId, delete that item from cart
+    const deletedCartItem = await prisma.cartItem.delete({
+      where: { productId_userId: { productId, userId } },
+    });
+
+    /** returned deletedCartItem : 
+  { "id": "cc6c4841-d982-4f88-940c-b3c76b44de10",
+    "productId": "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+    "userId": "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+    "quantity": 3,
+    "createdAt": "2023-02-17T16:15:20.340Z",
+    "updatedAt": "2023-02-17T16:15:20.340Z"}
+     */
+    res.status(httpStatus.OK).json(deletedCartItem);
   } catch (error) {
     // handle any other error.
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json(getErrorMessage(error));

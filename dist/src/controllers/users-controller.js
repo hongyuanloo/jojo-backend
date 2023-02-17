@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createOrder_clearCart = exports.createCheckoutSession = exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.createOrder = exports.getOrders = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
+exports.createOrder_clearCart = exports.createCheckoutSession = exports.updateUser = exports.deleteUser = exports.getUser = exports.getUsers = exports.createOrder = exports.getOrders = exports.deleteCartItem = exports.upsertCartItem = exports.getCartItems = exports.createUser = void 0;
 const index_1 = __importDefault(require("../models/index"));
 const http_status_1 = __importDefault(require("http-status"));
 const error_util_1 = require("../utils/error-util");
@@ -84,7 +84,7 @@ function getCartItems(req, res) {
     });
 }
 exports.getCartItems = getCartItems;
-// upsert a cart item to given user.
+// upsert a cart item from given user.
 function upsertCartItem(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id: userId } = req.params;
@@ -109,6 +109,37 @@ function upsertCartItem(req, res) {
     });
 }
 exports.upsertCartItem = upsertCartItem;
+// delete a cart item from given user.
+function deleteCartItem(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { id: userId, productId } = req.params;
+        console.log("--upsertCartItem--res.locals.user:", res.locals.user);
+        try {
+            // give userId and productId, delete that item from cart
+            const deletedCartItem = yield index_1.default.cartItem.delete({
+                where: { productId_userId: { productId, userId } },
+            });
+            /** returned deletedCartItem :
+          { "id": "cc6c4841-d982-4f88-940c-b3c76b44de10",
+            "productId": "c9c460b7-8f8a-4d6f-bff7-ea61cb8dbc08",
+            "userId": "c742ac1e-79a5-4335-b41b-c10c8a91059f",
+            "quantity": 3,
+            "createdAt": "2023-02-17T16:15:20.340Z",
+            "updatedAt": "2023-02-17T16:15:20.340Z"}
+             */
+            res.status(http_status_1.default.OK).json(deletedCartItem);
+        }
+        catch (error) {
+            // handle any other error.
+            res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json((0, error_util_1.getErrorMessage)(error));
+        }
+        finally {
+            // disconnect from db.
+            yield index_1.default.$disconnect();
+        }
+    });
+}
+exports.deleteCartItem = deleteCartItem;
 // get CartItems of a user. returns json or null
 function getOrders(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
