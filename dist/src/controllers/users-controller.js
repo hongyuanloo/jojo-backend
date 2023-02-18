@@ -59,10 +59,12 @@ function getCartItems(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id } = req.params;
         try {
-            // select all cartItems and include full details of product
-            const allCartItems = yield index_1.default.user.findUnique({
-                select: { cartItems: { include: { product: true } } },
-                where: { id },
+            // given userId select all cartItems and include full details of product
+            // return all items sort in updatedAt desc order.
+            const allCartItems = yield index_1.default.cartItem.findMany({
+                where: { userId: id },
+                include: { product: true },
+                orderBy: { updatedAt: "desc" },
             });
             // id not found, allCartItems === null.
             if (!allCartItems) {
@@ -71,7 +73,7 @@ function getCartItems(req, res) {
                     .json({ error: `${id} is invalid.` });
             }
             // id found, return allCartItems
-            res.status(http_status_1.default.OK).json(allCartItems);
+            res.status(http_status_1.default.OK).json({ cartItems: [...allCartItems] });
         }
         catch (error) {
             // handle any other error.
@@ -89,7 +91,7 @@ function upsertCartItem(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id: userId } = req.params;
         const { quantity, productId } = req.body;
-        console.log("--upsertCartItem--res.locals.user:", res.locals.user);
+        // console.log("--upsertCartItem--res.locals.user:", res.locals.user);
         try {
             const newCartItem = yield index_1.default.cartItem.upsert({
                 where: { productId_userId: { productId, userId } },
@@ -113,7 +115,6 @@ exports.upsertCartItem = upsertCartItem;
 function deleteCartItem(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id: userId, productId } = req.params;
-        console.log("--upsertCartItem--res.locals.user:", res.locals.user);
         try {
             // give userId and productId, delete that item from cart
             const deletedCartItem = yield index_1.default.cartItem.delete({
@@ -154,7 +155,7 @@ function getOrders(req, res) {
                     orderItems: true,
                 },
                 where: { userId },
-                orderBy: { createdAt: "asc" }, // or "desc"
+                orderBy: { createdAt: "desc" }, // or "desc"
             });
             // id found, return allOrders in [{},{}...]
             res.status(http_status_1.default.OK).json(allOrders);

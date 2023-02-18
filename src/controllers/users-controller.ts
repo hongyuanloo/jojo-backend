@@ -49,10 +49,12 @@ export async function getCartItems(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
-    // select all cartItems and include full details of product
-    const allCartItems = await prisma.user.findUnique({
-      select: { cartItems: { include: { product: true } } },
-      where: { id },
+    // given userId select all cartItems and include full details of product
+    // return all items sort in updatedAt desc order.
+    const allCartItems = await prisma.cartItem.findMany({
+      where: { userId: id },
+      include: { product: true },
+      orderBy: { updatedAt: "desc" },
     });
 
     // id not found, allCartItems === null.
@@ -63,7 +65,7 @@ export async function getCartItems(req: Request, res: Response) {
     }
 
     // id found, return allCartItems
-    res.status(httpStatus.OK).json(allCartItems);
+    res.status(httpStatus.OK).json({ cartItems: [...allCartItems] });
   } catch (error) {
     // handle any other error.
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json(getErrorMessage(error));
@@ -77,7 +79,7 @@ export async function getCartItems(req: Request, res: Response) {
 export async function upsertCartItem(req: Request, res: Response) {
   const { id: userId } = req.params;
   const { quantity, productId } = req.body;
-  console.log("--upsertCartItem--res.locals.user:", res.locals.user);
+  // console.log("--upsertCartItem--res.locals.user:", res.locals.user);
 
   try {
     const newCartItem = await prisma.cartItem.upsert({
@@ -99,8 +101,6 @@ export async function upsertCartItem(req: Request, res: Response) {
 // delete a cart item from given user.
 export async function deleteCartItem(req: Request, res: Response) {
   const { id: userId, productId } = req.params;
-
-  console.log("--upsertCartItem--res.locals.user:", res.locals.user);
 
   try {
     // give userId and productId, delete that item from cart
@@ -140,7 +140,7 @@ export async function getOrders(req: Request, res: Response) {
         orderItems: true,
       },
       where: { userId },
-      orderBy: { createdAt: "asc" }, // or "desc"
+      orderBy: { createdAt: "desc" }, // or "desc"
     });
 
     // id found, return allOrders in [{},{}...]
