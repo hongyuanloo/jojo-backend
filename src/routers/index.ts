@@ -11,7 +11,6 @@ dotenv.config();
 //init
 const app: Express = express();
 const port: Number = parseInt(process.env.PORT || "8001");
-// console.log("--port type: ", typeof port, process.env.PORT);
 
 // handle cors
 const corsOptions = {

@@ -21,7 +21,7 @@ function createProducts() {
                         title: "Awesome Cotton Bacon",
                         description: "The slim & simple Maple Gaming Keyboard from Dev Byte comes with a sleek body and 7- Color RGB LED Back-lighting for smart functionality",
                         price: "96",
-                        categories: ["Electronics"],
+                        categories: ["Shoes"],
                         images: [
                             "https://api.lorem.space/image/watch?w=640&h=480&r=6672",
                             "https://api.lorem.space/image/watch?w=640&h=480&r=7157",
@@ -39,7 +39,6 @@ function createProducts() {
                     },
                 ],
             });
-            console.log("---createProducts-..", products);
         }
         catch (error) {
             console.error(error);
@@ -55,7 +54,6 @@ function getProducts() {
         try {
             // ... you will write your Prisma Client queries here
             const allProducts = yield prisma.product.findMany();
-            console.log("---getProducts---", allProducts);
         }
         catch (error) {
             console.error(error);
@@ -65,27 +63,5 @@ function getProducts() {
         }
     });
 }
-// async function updateUser() {
-//   try {
-//     const data = await prisma.users.updateMany({
-//       where: { email: "loo@gg.com" },
-//       data: { role: "ADMIN" },
-//     });
-//     console.log("---updateUser---", data);
-//   } catch (error) {
-//     console.error(error);
-//   } finally {
-//     await prisma.$disconnect();
-//   }
-// }
-// async function deleteAllUsers() {
-//   try {
-//     const data = await prisma.users.deleteMany();
-//   } catch (error) {
-//     console.error(error);
-//   } finally {
-//     await prisma.$disconnect();
-//   }
-// }
 exports.default = { createProducts, getProducts };
 //# sourceMappingURL=productsModel.js.map

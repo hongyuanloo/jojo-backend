@@ -9,16 +9,13 @@ import {
   isPasswordMatched,
   verifyJWTRefreshToken,
 } from "../services/auth-service";
-import { JwtPayload } from "jsonwebtoken";
 import { ItokenPayLoad } from "../typeDeclaration";
 
 // Given email and password, authenticate and return { accessToken, refreshToken, user: { id, username, role },}
 export async function authenticateUser(req: Request, res: Response) {
   //check email and password
   const userInfor = { ...req.body };
-  // console.log("--authenticateUSERres.locals.user--", res.locals.user);
   userInfor.email = userInfor.email.toLowerCase();
-  // console.log("--userInfor--", userInfor);
 
   try {
     // check if email is found
@@ -27,7 +24,6 @@ export async function authenticateUser(req: Request, res: Response) {
         email: userInfor.email,
       },
     });
-    // console.log("--foundUser--", foundUser);
     // email not found, return httpStatus.NOT_FOUND
     if (!foundUser) {
       return res

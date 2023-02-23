@@ -22,9 +22,7 @@ function authenticateUser(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         //check email and password
         const userInfor = Object.assign({}, req.body);
-        // console.log("--authenticateUSERres.locals.user--", res.locals.user);
         userInfor.email = userInfor.email.toLowerCase();
-        // console.log("--userInfor--", userInfor);
         try {
             // check if email is found
             const foundUser = yield models_1.default.user.findUnique({
@@ -32,7 +30,6 @@ function authenticateUser(req, res) {
                     email: userInfor.email,
                 },
             });
-            // console.log("--foundUser--", foundUser);
             // email not found, return httpStatus.NOT_FOUND
             if (!foundUser) {
                 return res

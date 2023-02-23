@@ -79,7 +79,6 @@ export async function getCartItems(req: Request, res: Response) {
 export async function upsertCartItem(req: Request, res: Response) {
   const { id: userId } = req.params;
   const { quantity, productId } = req.body;
-  // console.log("--upsertCartItem--res.locals.user:", res.locals.user);
 
   try {
     const newCartItem = await prisma.cartItem.upsert({
@@ -173,7 +172,6 @@ export async function getOrders(req: Request, res: Response) {
 export async function createOrder(req: Request, res: Response) {
   const { id: userId } = req.params;
   const { totalPaid, paidAt, orderItems: orderProducts } = req.body;
-  // console.log("--req.body--", req.body);
 
   try {
     // given user id, create a new order with data provided in req.body.
@@ -185,14 +183,11 @@ export async function createOrder(req: Request, res: Response) {
         orderItems: { createMany: { data: orderProducts } },
       },
     });
-    // console.log("--newOrder--", newOrder);
 
     // remove all cart items of given user.
     const totalCartItemsRemoved = await prisma.cartItem.deleteMany({
       where: { userId },
     });
-
-    // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved);
 
     /* return new order created
     - example of newOrder created: 
@@ -348,7 +343,7 @@ export async function createCheckoutSession(req: Request, res: Response) {
   // get id and all products from req.body
   const { id: userId } = req.params;
   const { cartItems }: { cartItems: ICartItem[] } = req.body;
-  console.log("--checkOut-cartItems--:", cartItems);
+  // console.log("--checkOut-cartItems--:", cartItems);
 
   //! temporary data.
   // const cartItems = [
@@ -475,13 +470,11 @@ export async function createOrder_clearCart(
         orderItems: { createMany: { data: orderItems } },
       },
     });
-    // console.log("--newOrder--", newOrder); //!
 
     // remove all cart items of given user.
     const totalCartItemsRemoved = await prisma.cartItem.deleteMany({
       where: { userId },
     });
-    // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved); //!
 
     /* return new order created
     - example of newOrder created: 

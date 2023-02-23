@@ -29,7 +29,6 @@ function createUser() {
                     },
                 ],
             });
-            console.log("---createUser-..", allUsers);
         }
         catch (error) {
             console.error(error);
@@ -77,8 +76,6 @@ function getUsers() {
                 where: { role: "BASIC" },
                 include: { cartItems: { include: { product: true } } }, //{ include: { product: true } }
             });
-            console.log("---getUsers---", allUsers);
-            console.log("---allUsers[0].cartItems---", allUsers[0].cartItems);
         }
         catch (error) {
             console.error(error);
@@ -97,7 +94,6 @@ function updateUser() {
                 where: { email: "loo@gg.com" },
                 data: { role: "ADMIN" },
             });
-            console.log("---updateUser---", data);
         }
         catch (error) {
             console.error(error);

@@ -36,7 +36,7 @@ function authenticateToken(req, res, next) {
         res.locals.user = {
             role: "ADMIN",
         };
-        console.log("--Development accessToken ok.--");
+        console.log("--accessToken ok.--");
         next();
     }
     catch (error) {

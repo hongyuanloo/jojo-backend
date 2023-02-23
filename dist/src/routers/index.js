@@ -14,7 +14,6 @@ dotenv_1.default.config();
 //init
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || "8001");
-// console.log("--port type: ", typeof port, process.env.PORT);
 // handle cors
 const corsOptions = {
     origin: "*", // to allow only few urls replace "*" with ["http://localhost:3000",""]

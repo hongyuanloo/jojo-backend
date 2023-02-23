@@ -91,7 +91,6 @@ function upsertCartItem(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id: userId } = req.params;
         const { quantity, productId } = req.body;
-        // console.log("--upsertCartItem--res.locals.user:", res.locals.user);
         try {
             const newCartItem = yield index_1.default.cartItem.upsert({
                 where: { productId_userId: { productId, userId } },
@@ -191,7 +190,6 @@ function createOrder(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id: userId } = req.params;
         const { totalPaid, paidAt, orderItems: orderProducts } = req.body;
-        // console.log("--req.body--", req.body);
         try {
             // given user id, create a new order with data provided in req.body.
             const newOrder = yield index_1.default.order.create({
@@ -202,12 +200,10 @@ function createOrder(req, res) {
                     orderItems: { createMany: { data: orderProducts } },
                 },
             });
-            // console.log("--newOrder--", newOrder);
             // remove all cart items of given user.
             const totalCartItemsRemoved = yield index_1.default.cartItem.deleteMany({
                 where: { userId },
             });
-            // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved);
             /* return new order created
             - example of newOrder created:
              {
@@ -356,7 +352,7 @@ function createCheckoutSession(req, res) {
         // get id and all products from req.body
         const { id: userId } = req.params;
         const { cartItems } = req.body;
-        console.log("--checkOut-cartItems--:", cartItems);
+        // console.log("--checkOut-cartItems--:", cartItems);
         //! temporary data.
         // const cartItems = [
         //   {
@@ -470,12 +466,10 @@ function createOrder_clearCart(userId, totalPaid, orderItems) {
                     orderItems: { createMany: { data: orderItems } },
                 },
             });
-            // console.log("--newOrder--", newOrder); //!
             // remove all cart items of given user.
             const totalCartItemsRemoved = yield index_1.default.cartItem.deleteMany({
                 where: { userId },
             });
-            // console.log("--totalCartItemsRemoved--", totalCartItemsRemoved); //!
             /* return new order created
             - example of newOrder created:
              {

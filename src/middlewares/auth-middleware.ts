@@ -46,7 +46,7 @@ export function authenticateToken(
       role: "ADMIN",
     };
 
-    console.log("--Development accessToken ok.--");
+    console.log("--accessToken ok.--");
     next();
   } catch (error) {
     if (error instanceof JsonWebTokenError) {
