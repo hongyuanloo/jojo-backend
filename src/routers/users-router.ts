@@ -26,7 +26,7 @@ router.post(
   "/:id/create-checkout-session",
   authenticateToken,
   createCheckoutSession
-); //ok
+); //protected route ok
 
 // For development/admin use:
 router.get("/:id", getUser); //ok
